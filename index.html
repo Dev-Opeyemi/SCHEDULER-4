@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e8ff47" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="PES" />
+    <title>PES — Personal Execution System</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- ===== SIDEBAR NAV ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">PES</div>
+        <div class="brand-sub">Execution System</div>
+      </div>
+      <nav class="sidebar-nav">
+        <button
+          class="nav-btn active"
+          data-view="dashboard"
+          onclick="switchView('dashboard')"
+        >
+          <span class="nav-icon">◈</span>
+          <p>Dashboard</p>
+        </button>
+        <button
+          class="nav-btn"
+          data-view="schedule"
+          onclick="switchView('schedule')"
+        >
+          <span class="nav-icon">◷</span>
+          <p>Schedule</p>
+        </button>
+        <button class="nav-btn" data-view="tasks" onclick="switchView('tasks')">
+          <span class="nav-icon">◉</span>
+          <p>Tasks</p>
+        </button>
+        <button class="nav-btn" data-view="study" onclick="switchView('study')">
+          <span class="nav-icon">◧</span>
+          <p>Study</p>
+        </button>
+        <button class="nav-btn" data-view="today" onclick="switchView('today')">
+          <span class="nav-icon">◎</span>
+          <p>Today</p>
+        </button>
+      </nav>
+      <div class="sidebar-clock">
+        <div id="sidebar-time" class="s-time">--:--</div>
+        <div id="sidebar-day" class="s-day">---</div>
+        <div id="sidebar-date" class="s-date">---</div>
+      </div>
+      <div class="sidebar-notif">
+        <button
+          id="notif-btn"
+          class="notif-btn"
+          onclick="requestNotificationPermission()"
+        >
+          <span id="notif-icon">🔔</span>
+          <span id="notif-label">Enable Alerts</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+      <!-- ========== VIEW: DASHBOARD ========== -->
+      <section id="view-dashboard" class="view active">
+        <!-- Current Task Hero -->
+        <div class="hero-block">
+          <div class="hero-eyebrow">
+            <span class="pulse-dot"></span> LIVE NOW
+          </div>
+          <div id="current-type-badge" class="type-badge">—</div>
+          <h1 id="current-task-name" class="hero-title">Calculating...</h1>
+          <div id="current-task-time" class="hero-time-range">
+            --:-- – --:--
+          </div>
+          <div class="progress-wrap">
+            <div id="task-progress" class="progress-fill"></div>
+          </div>
+          <div class="hero-meta">
+            <span id="time-elapsed">— elapsed</span>
+            <span id="time-remaining">— remaining</span>
+          </div>
+        </div>
+
+        <!-- Next Task Card -->
+        <div class="next-block">
+          <div class="next-label">UP NEXT</div>
+          <div class="next-inner">
+            <div id="next-type-badge" class="type-badge small">—</div>
+            <div id="next-task-name" class="next-title">—</div>
+            <div id="next-task-time" class="next-time">—</div>
+            <div id="next-countdown" class="next-countdown">—</div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-done">0</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-pending">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-missed">0</div>
+            <div class="stat-label">Rescheduled</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-free">—</div>
+            <div class="stat-label">Free Slots</div>
+          </div>
+        </div>
+
+        <!-- Rescheduled Alert -->
+        <div id="reschedule-alert" class="reschedule-alert hidden">
+          <span class="alert-icon">⚡</span>
+          <span id="reschedule-msg">A task was rescheduled.</span>
+        </div>
+
+        <!-- Study Focus Widget (injected from study tracker) -->
+        <div class="study-focus-widget">
+          <div class="sfw-header">
+            <span class="sfw-label">STUDY FOCUS</span>
+            <button class="sfw-link" onclick="switchView('today')">
+              → Full View
+            </button>
+          </div>
+          <div id="sfw-current" class="sfw-current">
+            <div class="sfw-empty">
+              No study tasks yet — add them in Study tab.
+            </div>
+          </div>
+          <div id="sfw-next" class="sfw-next-wrap"></div>
+        </div>
+      </section>
+
+      <!-- ========== VIEW: SCHEDULE ========== -->
+      <section id="view-schedule" class="view">
+        <div class="view-header">
+          <h2 class="view-title">Today's Schedule</h2>
+          <div class="day-tabs" id="day-tabs">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+        <div id="schedule-list" class="schedule-list">
+          <!-- Filled by JS -->
+        </div>
+      </section>
+
+      <!-- ========== VIEW: TASKS ========== -->
+      <section id="view-tasks" class="view">
+        <div class="view-header">
+          <h2 class="view-title">Flexible Tasks</h2>
+          <p class="view-sub">
+            These are slotted into your free time automatically.
+          </p>
+        </div>
+
+        <!-- Add Task Form -->
+        <div class="task-form-card">
+          <div class="form-title">+ Add New Task</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Task Title</label>
+              <input
+                type="text"
+                id="task-title"
+                class="form-input"
+                placeholder="e.g. Study CSC302 past questions"
+              />
+            </div>
+          </div>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label class="form-label">Duration (minutes)</label>
+              <input
+                type="number"
+                id="task-duration"
+                class="form-input"
+                placeholder="e.g. 60"
+                min="5"
+                max="240"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority (1 = low, 5 = high)</label>
+              <div class="priority-selector">
+                <button class="pri-btn" data-pri="1" onclick="setPriority(1)">
+                  1
+                </button>
+                <button class="pri-btn" data-pri="2" onclick="setPriority(2)">
+                  2
+                </button>
+                <button class="pri-btn" data-pri="3" onclick="setPriority(3)">
+                  3
+                </button>
+                <button class="pri-btn" data-pri="4" onclick="setPriority(4)">
+                  4
+                </button>
+                <button
+                  class="pri-btn active"
+                  data-pri="5"
+                  onclick="setPriority(5)"
+                >
+                  5
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="task-category" class="form-input">
+                <option value="GROWTH">Growth / Study</option>
+                <option value="SPIRITUAL">Spiritual</option>
+                <option value="REST">Rest</option>
+                <option value="LECTURE">Lecture</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+          </div>
+          <button class="add-task-btn" onclick="addTask()">Add Task →</button>
+          <div id="form-error" class="form-error hidden">
+            Please fill in title and duration.
+          </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="tasks-section-title">Saved Tasks</div>
+        <div id="task-list" class="task-list">
+          <!-- Filled by JS -->
+        </div>
+        <div class="tasks-section-title" style="margin-top: 2rem">
+          Regenerate Schedule
+        </div>
+        <p
+          style="
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+          "
+        >
+          After adding/removing tasks, regenerate the schedule to allocate them
+          into free slots.
+        </p>
+        <button class="regen-btn" onclick="regenerateSchedule()">
+          ⟳ Regenerate Today's Schedule
+        </button>
+      </section>
+
+      <!-- ========== VIEW: STUDY TRACKER ========== -->
+      <section id="view-study" class="view">
+        <div class="view-header">
+          <h2 class="view-title">Study Tracker</h2>
+          <p class="view-sub">
+            All courses, assignments, and test prep. Auto-sorted. No manual
+            ordering.
+          </p>
+        </div>
+
+        <!-- Add Study Item Form -->
+        <div class="task-form-card study-add-form">
+          <div class="form-title">+ Add Study Item</div>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label class="form-label">Course</label>
+              <select id="si-course" class="form-input">
+                <option value="CSC302">CSC302 — OOP</option>
+                <option value="CSC304">CSC304 — Data Management</option>
+                <option value="CSC308">CSC308 — Formal Methods</option>
+                <option value="CSC314">CSC314 — Computer Architecture</option>
+                <option value="CSC316">CSC316 — Compiler Construction</option>
+                <option value="CSC332">
+                  CSC332 — Survey of Prog. Languages
+                </option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select id="si-type" class="form-input">
+                <option value="Lecture">Lecture Review</option>
+                <option value="Assignment">Assignment</option>
+                <option value="Test Prep">Test Prep</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label class="form-label">Deadline (optional)</label>
+              <input type="date" id="si-deadline" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Piority (1–5)</label>
+              <div class="priority-selector" id="si-diff-selector">
+                <button
+                  class="pri-btn"
+                  data-diff="1"
+                  onclick="setStudyDifficulty(1)"
+                >
+                  1
+                </button>
+                <button
+                  class="pri-btn"
+                  data-diff="2"
+                  onclick="setStudyDifficulty(2)"
+                >
+                  2
+                </button>
+                <button
+                  class="pri-btn active"
+                  data-diff="3"
+                  onclick="setStudyDifficulty(3)"
+                >
+                  3
+                </button>
+                <button
+                  class="pri-btn"
+                  data-diff="4"
+                  onclick="setStudyDifficulty(4)"
+                >
+                  4
+                </button>
+                <button
+                  class="pri-btn"
+                  data-diff="5"
+                  onclick="setStudyDifficulty(5)"
+                >
+                  5
+                </button>
+              </div>
+            </div>
+          </div>
+          <button class="add-task-btn" onclick="addStudyItem()">
+            Add Study Item →
+          </button>
+        </div>
+
+        <!-- View Toggle -->
+        <div class="study-view-toggle">
+          <button
+            class="svt-btn active"
+            id="svt-table"
+            onclick="setStudyView('table')"
+          >
+            ☰ Table
+          </button>
+          <button
+            class="svt-btn"
+            id="svt-board"
+            onclick="setStudyView('board')"
+          >
+            ⊞ Board
+          </button>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div id="study-table-view">
+          <div id="study-table-container" class="study-table-container">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- BOARD VIEW -->
+        <div id="study-board-view" style="display: none">
+          <div class="study-board">
+            <div class="board-col" id="board-not-started">
+              <div class="board-col-header">
+                <span
+                  class="board-col-dot"
+                  style="background: var(--buffer)"
+                ></span>
+                Not Started
+                <span class="board-col-count" id="bcount-ns">0</span>
+              </div>
+              <div
+                class="board-col-body"
+                id="bcol-ns"
+                ondragover="event.preventDefault()"
+                ondrop="boardDrop(event, 'Not Started')"
+              ></div>
+            </div>
+            <div class="board-col" id="board-in-progress">
+              <div class="board-col-header">
+                <span
+                  class="board-col-dot"
+                  style="background: var(--accent)"
+                ></span>
+                In Progress
+                <span class="board-col-count" id="bcount-ip">0</span>
+              </div>
+              <div id="in-progress-warn" class="in-progress-warn hidden">
+                ⚠ Too many in progress!
+              </div>
+              <div
+                class="board-col-body"
+                id="bcol-ip"
+                ondragover="event.preventDefault()"
+                ondrop="boardDrop(event, 'In Progress')"
+              ></div>
+            </div>
+            <div class="board-col" id="board-completed">
+              <div class="board-col-header">
+                <span
+                  class="board-col-dot"
+                  style="background: var(--growth)"
+                ></span>
+                Completed
+                <span class="board-col-count" id="bcount-done">0</span>
+              </div>
+              <div
+                class="board-col-body"
+                id="bcol-done"
+                ondragover="event.preventDefault()"
+                ondrop="boardDrop(event, 'Completed')"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== VIEW: TODAY (DAILY BATTLEFIELD) ========== -->
+      <section id="view-today" class="view">
+        <div class="view-header">
+          <h2 class="view-title">Today's Battlefield</h2>
+          <p class="view-sub">
+            Urgent, overdue, and high-difficulty items. These cannot be hidden
+            from.
+          </p>
+        </div>
+
+        <!-- Current Focus -->
+        <div class="today-focus-block" id="today-focus-block">
+          <div class="tfb-label">CURRENT FOCUS</div>
+          <div id="today-focus-content">
+            <div class="sfw-empty">Nothing urgent. You're clear.</div>
+          </div>
+        </div>
+
+        <!-- Battlefield List -->
+        <div class="tasks-section-title" style="margin-top: 1.5rem">
+          MUST DO TODAY
+        </div>
+        <div id="today-list" class="today-list">
+          <!-- Filled by JS -->
+        </div>
+
+        <!-- Recommended Time Blocks -->
+        <div class="tasks-section-title" style="margin-top: 2rem">
+          RECOMMENDED STUDY SLOTS TODAY
+        </div>
+        <div id="today-slots" class="today-slots">
+          <!-- Filled by JS -->
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== OVERRIDE MODAL ===== -->
+    <div id="override-overlay" class="override-overlay hidden">
+      <div class="override-modal">
+        <div class="override-modal-icon">⚠️</div>
+        <div class="override-modal-title">Override Required</div>
+        <div class="override-modal-subtitle">
+          You are attempting to bypass a higher-priority task. A reason is
+          required to proceed.
+        </div>
+        <div class="override-blocked-task">
+          <div class="override-blocked-label">
+            Blocked task (higher priority)
+          </div>
+          <div class="override-blocked-name" id="override-blocked-name">—</div>
+        </div>
+        <div class="override-reasons" id="override-reasons">
+          <button
+            class="override-reason-btn"
+            data-reason="Too difficult"
+            onclick="selectOverrideReason(this)"
+          >
+            😰 Too difficult right now
+          </button>
+          <button
+            class="override-reason-btn"
+            data-reason="Not in the mood"
+            onclick="selectOverrideReason(this)"
+          >
+            😶 Not in the mood
+          </button>
+          <button
+            class="override-reason-btn"
+            data-reason="Task unclear"
+            onclick="selectOverrideReason(this)"
+          >
+            ❓ Task is unclear
+          </button>
+          <button
+            class="override-reason-btn"
+            data-reason="Other"
+            onclick="selectOverrideReason(this)"
+          >
+            ✏️ Other (specify below)
+          </button>
+          <input
+            type="text"
+            id="override-other-text"
+            class="override-other-input"
+            placeholder="Describe your reason…"
+            oninput="onOverrideOtherInput()"
+          />
+        </div>
+        <div class="override-consequence">
+          <strong>⚡ Consequences:</strong>
+          The task you're skipping will be flagged <strong>At Risk</strong> and
+          its priority will be boosted. It will interrupt your session later.
+        </div>
+        <div class="override-actions">
+          <button class="override-cancel-btn" onclick="cancelOverride()">
+            ← Go Back
+          </button>
+          <button
+            class="override-confirm-btn"
+            id="override-confirm-btn"
+            onclick="confirmOverride()"
+          >
+            Override & Proceed →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PWA INSTALL BANNER ===== -->
+    <div id="pwa-install-banner" class="pwa-install-banner hidden">
+      <div class="pwa-install-text">
+        <strong>⚡ Install PES</strong>
+        Add to your home screen for full native experience + offline mode.
+      </div>
+      <button class="pwa-install-btn" onclick="triggerPWAInstall()">
+        Install
+      </button>
+      <button
+        class="pwa-install-dismiss"
+        onclick="dismissInstallBanner()"
+        title="Dismiss"
+      >
+        ✕
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
